@@ -27,7 +27,7 @@ class FakeMap extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['mark'], 'integer'],
+            [['mark', 'type'], 'integer'],
             [['updated_at'], 'safe'],
         ];
     }
@@ -40,6 +40,7 @@ class FakeMap extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'mark' => 'Mark',
+            'type' => 'Type',
             'updated_at' => 'Updated At',
         ];
     }
