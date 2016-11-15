@@ -5,22 +5,23 @@ namespace common\models;
 use Yii;
 
 /**
- * This is the model class for table "fake_map".
+ * This is the model class for table "round".
  *
  * @property integer $id
- * @property integer $mark
- * @property integer $type
  * @property integer $player_id
+ * @property integer $battle_start
+ * @property integer $game_end
  * @property string $updated_at
+ * @property string $created_at
  */
-class FakeMap extends \yii\db\ActiveRecord
+class Round extends \yii\db\ActiveRecord
 {
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return 'fake_map';
+        return 'round';
     }
 
     /**
@@ -29,8 +30,8 @@ class FakeMap extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['mark', 'type', 'player_id'], 'integer'],
-            [['updated_at'], 'safe'],
+            [['player_id', 'battle_start', 'game_end'], 'integer'],
+            [['updated_at', 'created_at'], 'safe'],
         ];
     }
 
@@ -41,10 +42,11 @@ class FakeMap extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'mark' => 'Mark',
-            'type' => 'Type',
             'player_id' => 'Player ID',
+            'battle_start' => 'Battle Start',
+            'game_end' => 'Game End',
             'updated_at' => 'Updated At',
+            'created_at' => 'Created At',
         ];
     }
 }

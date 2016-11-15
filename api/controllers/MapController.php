@@ -4,6 +4,10 @@ namespace api\controllers;
 use Yii;
 use common\models\FakeMap;
 use common\models\Player;
+use common\models\Round;
+use common\models\MechTrack;
+use common\models\Bomb;
+use common\models\RoundPlayer;
 
 /**
  * Map controller
@@ -39,46 +43,49 @@ class MapController extends ApiController
         $key = empty($this->params['key'])?'':$this->params['key'];
         $key = $this->handshake($key);
         $player = Player::findOne(['key'=>$key]);
-        if ($player) {
+        if ($player && $player->current_resource > 0) {
             $result['data']['player'] = $player;
             $grid = FakeMap::findOne(['id'=>$id, 'mark'=>Yii::$app->params['mark_empty']]);
             if ($grid) {
                 $ids = [];
                 // calculate the up, down, left and right
-                $grid_x = Yii::$app->params['grid_x'];
-                $grid_y = Yii::$app->params['grid_y'];
+                $row = Yii::$app->params['row'];
+                $column = Yii::$app->params['column'];
                 // up
-                if ($grid->id - $grid_x >= 1) {
-                    array_push ($ids, $grid->id - $grid_x);
+                if ($grid->id - $column >= 1) {
+                    array_push ($ids, $grid->id - $column);
                 }
                 // down
-                if ($grid->id + $grid_x <= $grid_x * $grid_y) {
-                    array_push ($ids, $grid->id + $grid_x);
+                if ($grid->id + $column <= $row * $column) {
+                    array_push ($ids, $grid->id + $column);
                 }
                 // left
-                if ($grid->id % $grid_x != 1 && $grid->id - 1 >= 1) {
+                if ($grid->id % $column != 1 && $grid->id - 1 >= 1) {
                     array_push ($ids, $grid->id - 1);
                 }
                 // right
-                if (($grid->id) % $grid_x != 0 && $grid->id + 1 <= $grid_x * $grid_y) {
+                if (($grid->id) % $column != 0 && $grid->id + 1 <= $row * $column) {
                     array_push ($ids, $grid->id + 1);
                 }
                 // print_r($id);
                 // print_r($ids);exit;
-                $grids = FakeMap::find()->where(['id'=>$ids])->andWhere(['<', 'mark', Yii::$app->params['mark_building']])->all();
+                $grids = FakeMap::find()->where(['id'=>$ids])->andWhere(['<', 'mark', Yii::$app->params['mark_full']])->all();
                 if ($grids && count($grids) == count($ids) && count($ids) > 0) {
                     foreach ($grids as $element) {
-                        if ($element->mark < Yii::$app->params['mark_building']) {
-                            $element->mark += Yii::$app->params['mark_building_part'];
+                        if ($element->mark < Yii::$app->params['mark_full']) {
+                            $element->mark += Yii::$app->params['mark_part'];
                         }
                         $element->save();
                     }
-                    $grid->mark = Yii::$app->params['mark_building'];
-                    $grid->type = Yii::$app->params['type_shooting_tower'];
+                    $grid->mark = Yii::$app->params['mark_full'];
+                    $grid->type = Yii::$app->params['type_default'];
                     $grid->player_id = $player->id;
                     $grid->save();
-                    $result['success'] = true;
                     $result['data']['grid'] = $grid;
+                    $player->current_resource -= 1;
+                    $player->save();
+                    $player->refresh();
+                    $result['success'] = true;
                 }
             } else {
                 $result['error'] = ['code'=>200, 'msg'=>'data_not_found'];
@@ -102,12 +109,14 @@ class MapController extends ApiController
     }
 
     public function actionGetMarked() {
-        $result['success'] = true;
+        $result['success'] = false;
         $result['data'] = [];
-        $grids = FakeMap::find()->where(['mark'=>Yii::$app->params['mark_building']])->all();
+        $result['data']['grids'] = [];
+        $grids = FakeMap::find()->where(['<>', 'type', Yii::$app->params['type_empty']])->andWhere(['<>', 'mark', Yii::$app->params['type_empty']])->all();
         if ($grids) {
             $result['data']['grids'] = $grids;
         }
+        $result['success'] = true;
 
         $result['query_time'] = microtime(true) - $this->ini_time;
         return $result;
@@ -122,11 +131,11 @@ class MapController extends ApiController
         if ($player) {
             $result['success'] = true;
             $result['data']['player'] = $player;
-            $my_grids = FakeMap::find()->where(['mark'=>Yii::$app->params['mark_building']])->andWhere(['player_id'=>$player->id])->all();
+            $my_grids = FakeMap::find()->where(['mark'=>Yii::$app->params['mark_full']])->andWhere(['player_id'=>$player->id])->all();
             if ($my_grids) {
                 $result['data']['my_grids'] = $my_grids;
             }
-            $other_grids = FakeMap::find()->where(['mark'=>Yii::$app->params['mark_building']])->andWhere(['<>', 'player_id', $player->id])->all();
+            $other_grids = FakeMap::find()->where(['mark'=>Yii::$app->params['mark_full']])->andWhere(['<>', 'player_id', $player->id])->all();
             if ($other_grids) {
                 $result['data']['other_grids'] = $other_grids;
             }
@@ -145,7 +154,7 @@ class MapController extends ApiController
         if ($player) {
             $result['success'] = true;
             $result['data']['player'] = $player;
-            $grids = FakeMap::find()->where(['mark'=>Yii::$app->params['mark_building']])->andWhere(['player_id'=>$player->id])->all();
+            $grids = FakeMap::find()->where(['mark'=>Yii::$app->params['mark_full']])->andWhere(['player_id'=>$player->id])->all();
             if ($grids) {
                 $result['data']['grids'] = $grids;
             }
@@ -164,7 +173,7 @@ class MapController extends ApiController
         if ($player) {
             $result['success'] = true;
             $result['data']['player'] = $player;
-            $grids = FakeMap::find()->where(['mark'=>Yii::$app->params['mark_building']])->andWhere(['<>', 'player_id', $player->id])->all();
+            $grids = FakeMap::find()->where(['mark'=>Yii::$app->params['mark_full']])->andWhere(['<>', 'player_id', $player->id])->all();
             if ($grids) {
                 $result['data']['grids'] = $grids;
             }
@@ -225,10 +234,80 @@ class MapController extends ApiController
         return $result;
     }
 
+    public function actionGetMapAndTrack() {
+        $result['success'] = false;
+        $result['data'] = [];
+        $result['data']['my_grids'] = [];
+        $result['data']['other_grids'] = [];
+        $result['data']['wall_grids'] = [];
+        $result['data']['track'] = [];
+        $result['data']['round'] = [];
+        $result['data']['other_bombs'] = [];
+        $result['data']['is_win'] = [];
+        $key = empty($this->params['key'])?'':$this->params['key'];
+        $key = $this->handshake($key);
+        $player = Player::findOne(['key'=>$key]);
+        $round = Round::find()->orderBy('id DESC')->one();
+        if ($player && $round) {
+            $result['data']['player'] = $player;
+            $roundPlayer = RoundPlayer::findOne(['round_id'=>$round->id, 'player_id'=>$player->id]);
+            if ($roundPlayer) {
+                $result['data']['is_win'] = $roundPlayer->is_win;
+            }
+            $grids = FakeMap::find()->all();
+            if ($grids) {
+                $result['success'] = true;
+                $result['data']['grids'] = $grids;
+                $my_grids = [];
+                $other_grids = [];
+                $wall_grids = [];
+                foreach ($grids as $element) {
+                    if ($element->type >= Yii::$app->params['type_default'] && $element->player_id == $player->id && $element->mark <> Yii::$app->params['mark_empty']) {
+                        $my_grids[] = $element;
+                    } else if ($element->type >= Yii::$app->params['type_default'] && $element->player_id != 0 && $element->mark <> Yii::$app->params['mark_empty']) {
+                        $other_grids[] = $element;
+                    } else if ($element->type == Yii::$app->params['type_wall'] && $element->mark <> Yii::$app->params['mark_empty']) {
+                        $wall_grids[] = $element;
+                    }
+                }
+                $result['data']['my_grids'] = $my_grids;
+                $result['data']['other_grids'] = $other_grids;
+                $result['data']['wall_grids'] = $wall_grids;
+            }
+
+            // $mech_track = MechTrack::find()->orderBy('updated_at DESC')->one();
+            // if ($mech_track) {
+            //     $track = $mech_track->track;
+            // } else {
+            //     // Open the file to get existing content
+            //     if (!file_exists($this->filename)) {
+            //         file_put_contents($this->filename, '');
+            //     }
+            //     $track = file_get_contents($this->filename);
+            // }
+            if (!file_exists($this->filename)) {
+                file_put_contents($this->filename, '');
+            }
+            $track = file_get_contents($this->filename);
+            $result['data']['track'] = $track;
+            $result['data']['round'] = $round;
+
+            $start_time = date('Y-m-d H:i:s', strtotime('-5 second', time()));
+            $bombs = Bomb::find()->where(['round_id'=>$round->id])->andWhere(['>', 'created_at', $start_time])->andWhere(['<>', 'player_id', $player->id])->all();
+            if ($bombs) {
+                $result['data']['other_bombs'] = $bombs;
+            }
+        }
+
+        $result['query_time'] = microtime(true) - $this->ini_time;
+        return $result;
+    }
+
+    // clear map data
     public function actionClear() {
         $result['success'] = false;
         try {
-            Yii::$app->db->createCommand("UPDATE fake_map SET mark = 0, type = 0, player_id = 0 WHERE mark <> 5")->execute();
+            Yii::$app->db->createCommand("UPDATE fake_map SET mark = 0, type = 0, player_id = 0 WHERE type <> ".Yii::$app->params['type_core'])->execute();
             file_put_contents($this->filename, '');
             $result['success'] = true;
         } catch (Exception $e) {
@@ -245,19 +324,61 @@ class MapController extends ApiController
         $error = false;
         $mech = empty($this->params['mech'])?'':$this->params['mech'];    // mech's location
         $towers = empty($this->params['towers'])?'':$this->params['towers'];    // destroyed tower's location
+        $scores = empty($this->params['scores'])?'':$this->params['scores'];    // scores of this round
         if (!empty($mech)) {
+            // $mech_track = MechTrack::find()->orderBy('updated_at DESC')->one();
+            // if ($mech_track) {
+            //     $track = $mech_track->track;
+            //     $track = explode(',', $track);
+            //     if ($mech != $track[sizeof($track)-1]) {
+            //         $track[] = $mech;
+            //     }
+            //     $track = implode(',', $track);
+            //     $mech_track->track = $track;
+            //     $mech_track->save();
+            // } else {
+            //     // Open the file to get existing content
+            //     if (!file_exists($this->filename)) {
+            //         file_put_contents($this->filename, '');
+            //     }
+            //     $track = file_get_contents($this->filename);
+            //     $track = explode(',', $track);
+            //     // $track .= $mech.",";
+            //     if ($mech != $track[sizeof($track)-1]) {
+            //         $track[] = $mech;
+            //     }
+            //     $track = implode(',', $track);
+            //     file_put_contents($this->filename, $track);
+            // }
+
             // Open the file to get existing content
             if (!file_exists($this->filename)) {
                 file_put_contents($this->filename, '');
             }
             $track = file_get_contents($this->filename);
-            $track .= $mech.",";
+            $track = explode(',', $track);
+            // $track .= $mech.",";
+            if ($mech != $track[sizeof($track)-1]) {
+                $track[] = $mech;
+            }
+            $track = implode(',', $track);
             file_put_contents($this->filename, $track);
         }
         if (!empty($towers)) {
             $towers = explode(',', $towers);
             foreach ($towers as $tower) {
                 if (!$this->removeMark($tower)) {
+                    $error = true;
+                }
+            }
+        }
+        // print_r($this->params);exit;
+        if (!empty($scores)) {
+            foreach ($scores as $element) {
+                try {
+                    Yii::$app->db->createCommand("UPDATE player SET score = score + ". $element['score'] .", current_score = current_score + ". $element['score'] ." WHERE id = ".$element['player_id'])->execute();
+                } catch (Exception $e) {
+                    throw new Exception("Error : ".$e);
                     $error = true;
                 }
             }
@@ -277,33 +398,35 @@ class MapController extends ApiController
         $grid = FakeMap::findOne(['id'=>$id]);
         if ($grid) {
             $grid->mark = Yii::$app->params['mark_empty'];
+            // $grid->type = 0;
+            $grid->player_id = 0;
             $grid->save();
             // calculate the up, down, left and right
             $ids = [];
             // calculate the up, down, left and right
-            $grid_x = Yii::$app->params['grid_x'];
-            $grid_y = Yii::$app->params['grid_y'];
+            $row = Yii::$app->params['row'];
+            $column = Yii::$app->params['column'];
             // up
-            if ($grid->id - $grid_x >= 0) {
-                array_push ($ids, $grid->id - $grid_x);
+            if ($grid->id - $column >= 0) {
+                array_push ($ids, $grid->id - $column);
             }
             // down
-            if ($grid->id + $grid_x < $grid_x * $grid_y) {
-                array_push ($ids, $grid->id + $grid_x);
+            if ($grid->id + $column < $row * $column) {
+                array_push ($ids, $grid->id + $column);
             }
             // left
-            if ($grid->id % $grid_x > 0) {
+            if ($grid->id % $column > 0) {
                 array_push ($ids, $id - 1);
             }
             // right
-            if (($grid->id+1) % $grid_x > 0) {
+            if (($grid->id+1) % $column > 0) {
                 array_push ($ids, $id + 1);
             }
             $grids = FakeMap::find()->where(['id'=>$ids])->all();
             if ($grids) {
                 foreach ($grids as $element) {
                     if ($element->mark > Yii::$app->params['mark_empty']) {
-                        $element->mark -= Yii::$app->params['mark_building_part'];
+                        $element->mark -= Yii::$app->params['mark_part'];
                     }
                     $element->save();
                 }
