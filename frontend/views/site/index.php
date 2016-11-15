@@ -407,7 +407,7 @@ $resource = Yii::$app->params['resource'];
         // text.removeAllChildren();
 
         if (text.getChildByName("hint") == null && getCookie("battle_start") == 0) {
-            var string = new createjs.Text('Place your defense tower!', '48px Fantasy', '#ffb959');
+            var string = new createjs.Text('Place your defense tower!', '48px Impact,fantasy', '#ffb959');
             string.textAlign = 'center';
             string.name = 'hint';
             string.x = <?=$map_width/2?> + <?=$offset_x?>;
@@ -416,7 +416,7 @@ $resource = Yii::$app->params['resource'];
         } else if (text.getChildByName("hint") && getCookie("battle_start") == 0) {
             text.getChildByName("hint").text = 'Place your defense tower!';
         } else if (text.getChildByName("hint") == null && getCookie("battle_start") == 1) {
-            var string = new createjs.Text('Drop bomb to stop Mech!', '48px Fantasy', '#ffb959');
+            var string = new createjs.Text('Drop bomb to stop Mech!', '48px Impact,fantasy', '#ffb959');
             string.textAlign = 'center';
             string.name = 'hint';
             string.x = <?=$map_width/2?> + <?=$offset_x?>;
@@ -428,7 +428,7 @@ $resource = Yii::$app->params['resource'];
 
         // score
         if (text.getChildByName("score") == null) {
-            var string = new createjs.Text('Score: ' + getCookie("score"), '84px Fantasy', '#000000');
+            var string = new createjs.Text('Score: ' + getCookie("score"), '84px Impact,fantasy', '#000000');
             string.textAlign = 'center';
             string.name = 'score';
             string.x = <?=$map_width/2?> + <?=$offset_x?>;
@@ -440,7 +440,7 @@ $resource = Yii::$app->params['resource'];
 
         // round_score
         if (text.getChildByName("round_score") == null) {
-            var string = new createjs.Text('this round: ' + getCookie("round_score"), '48px Fantasy', '#000000');
+            var string = new createjs.Text('this round: ' + getCookie("round_score"), '48px Impact,fantasy', '#000000');
             string.textAlign = 'center';
             string.name = 'round_score';
             string.x = <?=$map_width/2?> + <?=$offset_x?>;
@@ -452,7 +452,7 @@ $resource = Yii::$app->params['resource'];
 
         // resource
         if (getCookie("battle_start") == 0 && text.getChildByName("resource") == null) {
-            var string = new createjs.Text('Tower: ' + getCookie("resource"), '48px Fantasy', '#000000');
+            var string = new createjs.Text('Tower: ' + getCookie("resource"), '48px Impact,fantasy', '#000000');
             string.textAlign = 'left';
             string.name = "resource";
             string.x = <?=$map_width?> - 160 + <?=$offset_x?>;
@@ -468,7 +468,7 @@ $resource = Yii::$app->params['resource'];
 
         // bomb
         if (getCookie("battle_start") == 1 && text.getChildByName("bomb") == null) {
-            string = new createjs.Text('Bomb: ' + getCookie("bomb"), '48px Fantasy', '#000000');
+            string = new createjs.Text('Bomb: ' + getCookie("bomb"), '48px Impact,fantasy', '#000000');
             string.textAlign = 'left';
             string.name = "bomb";
             string.x = <?=$map_width?> - 160 + <?=$offset_x?>;
@@ -480,7 +480,7 @@ $resource = Yii::$app->params['resource'];
 
         // bomb_timer
         if (getCookie("battle_start") == 1 && text.getChildByName("bomb_timer") == null) {
-            stringstring = new createjs.Text('CD: ' + getCookie("bomb_timer"), '48px Fantasy', '#000000');
+            stringstring = new createjs.Text('CD: ' + getCookie("bomb_timer"), '48px Impact,fantasy', '#000000');
             string.textAlign = 'left';
             string.name = "bomb_timer";
             string.x = <?=$map_width?> - 160 + <?=$offset_x?>;
@@ -492,7 +492,7 @@ $resource = Yii::$app->params['resource'];
 
         // bomb_delay
         if (getCookie("battle_start") == 1 && text.getChildByName("bomb_delay") == null) {
-            string = new createjs.Text('Delay: ' + getCookie("bomb_delay"), '48px Fantasy', '#000000');
+            string = new createjs.Text('Delay: ' + getCookie("bomb_delay"), '48px Impact,fantasy', '#000000');
             string.textAlign = 'left';
             string.name = "bomb_delay";
             string.x = <?=$map_width?> - 160 + <?=$offset_x?>;
@@ -616,7 +616,7 @@ $resource = Yii::$app->params['resource'];
         }
 
         if (start.getChildByName("title") == null) {
-            var text = new createjs.Text('The Havoc', '120px Fantasy', '#FFFFFF');
+            var text = new createjs.Text('The Havoc', '120px Impact,fantasy', '#FFFFFF');
             text.textAlign = 'center';
             text.name = "title";
             text.x = <?=$scene_width/2?>;
@@ -639,7 +639,7 @@ $resource = Yii::$app->params['resource'];
                         setCookie("game_end", 0);
                         setCookie("battle_start", 0);
                         if (start.getChildByName("enter") == null) {
-                            var text = new createjs.Text('Enter', '84px Fantasy', '#ffb959');
+                            var text = new createjs.Text('Enter', '84px Impact,fantasy', '#ffb959');
                             text.textAlign = 'center';
                             text.name = "enter";
                             text.x = <?=$scene_width/2?>;
@@ -655,7 +655,7 @@ $resource = Yii::$app->params['resource'];
                         setCookie("game_end", 0);
                         setCookie("battle_start", 0);
                         if (start.getChildByName("enter") == null) {
-                            var text = new createjs.Text('Waiting for Mech ...', '64px Fantasy', '#ffb959');
+                            var text = new createjs.Text('Waiting for Mech ...', '64px Impact,fantasy', '#ffb959');
                             text.textAlign = 'center';
                             text.name = "enter";
                             text.x = <?=$scene_width/2?>;
@@ -690,7 +690,7 @@ $resource = Yii::$app->params['resource'];
         }
 
         if (end.getChildByName("the_end") == null) {
-            var text = new createjs.Text('The End', '84px Fantasy', '#FFFFFF');
+            var text = new createjs.Text('The End', '84px Impact,fantasy', '#FFFFFF');
             text.textAlign = 'center';
             text.name = "the_end";
             text.x = <?=$scene_width/2?>;
@@ -700,9 +700,9 @@ $resource = Yii::$app->params['resource'];
 
         if (end.getChildByName("is_win") == null) {
             if (getCookie("is_win") == 1) {
-                var text = new createjs.Text('We won!', '84px Fantasy', '#ffb959');
+                var text = new createjs.Text('We won!', '84px Impact,fantasy', '#ffb959');
             } else {
-                var text = new createjs.Text('We lost...', '84px Fantasy', '#ffb959');
+                var text = new createjs.Text('We lost...', '84px Impact,fantasy', '#ffb959');
             }
             text.textAlign = 'center';
             text.name = "is_win";
@@ -712,7 +712,7 @@ $resource = Yii::$app->params['resource'];
         }
 
         if (end.getChildByName("score") == null) {
-            var text = new createjs.Text('Score: ' + getCookie("score"), '128px Fantasy', '#FFFFFF');
+            var text = new createjs.Text('Score: ' + getCookie("score"), '128px Impact,fantasy', '#FFFFFF');
             text.textAlign = 'center';
             text.name = "score";
             text.x = <?=$scene_width/2?>;
@@ -723,7 +723,7 @@ $resource = Yii::$app->params['resource'];
         }
 
         if (end.getChildByName("round_score") == null) {
-            var text = new createjs.Text('this round: ' + getCookie("round_score"), '84px Fantasy', '#ffb959');
+            var text = new createjs.Text('this round: ' + getCookie("round_score"), '84px Impact,fantasy', '#ffb959');
             text.textAlign = 'center';
             text.name = "round_score";
             text.x = <?=$scene_width/2?>;
@@ -734,7 +734,7 @@ $resource = Yii::$app->params['resource'];
         }
 
         if (end.getChildByName("start") == null) {
-            var text = new createjs.Text('Restart', '84px Fantasy', '#FFFFFF');
+            var text = new createjs.Text('Restart', '84px Impact,fantasy', '#FFFFFF');
             text.textAlign = 'center';
             text.name = "start";
             text.x = <?=$scene_width/2?>;
@@ -1000,9 +1000,7 @@ $resource = Yii::$app->params['resource'];
     position: fixed;
     z-index: 2000;
 }
-body {
-    font-family: fantasy;
-}
+body{font-family:Impact,fantasy;}
 .loader {
     border: 16px solid #f3f3f3; /* Light grey */
     border-top: 16px solid #696969; /* Blue */
