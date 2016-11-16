@@ -36,17 +36,21 @@ class RoundController extends ApiController
 
     public function actionEnd() {
         $result['success'] = false;
-        $is_win = empty($this->params['is_win'])?'':$this->params['is_win'];
+        $is_win = empty($this->params['is_win'])?0:$this->params['is_win'];
         $round = Round::find()->orderBy('id DESC')->one();
         if ($round && $round->game_end == 0) {
-            $round->game_end = 1;
             $round->battle_start = 0;
             $round->save();
             $roundPlayers = RoundPlayer::find()->where(['round_id'=>$round->id])->all();
-            if ($roundPlayers && !empty($is_win)) {
+            if ($roundPlayers) {
                 foreach ($roundPlayers as $roundPlayer) {
                     $roundPlayer->is_win = $is_win;
                     $roundPlayer->save();
+                    $player = Player::findOne(['id'=>$roundPlayer->player_id]);
+                    if ($player) {
+                        $player->current_is_win = $roundPlayer->is_win;
+                        $player->save();
+                    }
                 }
             }
             $result['success'] = true;
@@ -76,8 +80,7 @@ class RoundController extends ApiController
         $result['data'] = [];
         $result['data']['round'] = [];
         $round = Round::find()->orderBy('id DESC')->one();
-        if ($round && $round->game_end == 1) {
-            $result['success'] = true;
+        if (!$round || ($round && $round->game_end == 1)) {
             try {
                 Yii::$app->db->createCommand("UPDATE fake_map SET mark = 0, type = 0, player_id = 0 WHERE type <> ".Yii::$app->params['type_core']." AND type <> ".Yii::$app->params['type_wall'])->execute();
                 Yii::$app->db->createCommand("UPDATE fake_map SET mark = 1 WHERE type = ".Yii::$app->params['type_core']." OR type = ".Yii::$app->params['type_wall'])->execute();
@@ -140,7 +143,7 @@ class RoundController extends ApiController
         return $result;
     }
 
-    // check if the player is in the game
+    // check if the player is in the game (mobile side)
     // last active round = player's current round
     public function actionCheck() {
         $result['success'] = false;
@@ -162,7 +165,7 @@ class RoundController extends ApiController
         return $result;
     }
 
-    // check if mech is ready
+    // check if mech is ready (mobile side)
     public function actionReady() {
         $result['success'] = false;
         $result['data'] = [];
@@ -189,6 +192,27 @@ class RoundController extends ApiController
         $result['data']['resource'] = Yii::$app->params['resource'];
         $result['data']['bomber_timer'] = Yii::$app->params['bomb_timer'];
         $result['data']['bomb_delay'] = Yii::$app->params['bomb_delay'];
+
+        $result['query_time'] = microtime(true) - $this->ini_time;
+        return $result;
+    }
+
+    public function actionGetRoundResult() {
+        $result['success'] = false;
+        $result['data'] = [];
+        $result['data']['player'] = [];
+        $result['data']['roundPlayer'] = [];
+        $key = empty($this->params['key'])?'':$this->params['key'];
+        $key = $this->handshake($key);
+        $player = Player::findOne(['key'=>$key]);
+        if ($player) {
+            $result['data']['player'] = $player;
+            $roundPlayer = RoundPlayer::findOne(['round_id'=>$player->current_round_id, 'player_id'=>$player->id]);
+            if ($roundPlayer) {
+                $result['data']['roundPlayer'] = $roundPlayer;
+                $result['success'] = true;
+            }
+        }
 
         $result['query_time'] = microtime(true) - $this->ini_time;
         return $result;

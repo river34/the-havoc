@@ -80,17 +80,18 @@ $resource = Yii::$app->params['resource'];
 
     function init() {
 
-        drawLoading();
-
         $('#start').hide();
         $('#end').hide();
         $("#restart-button").hide();
         $("#enter-button").hide();
         $('.loader').hide();
+        $('.loader-mask').hide();
 
         clearInterval(check_status);
         clearInterval(text_anim);
         clearInterval(interval);
+
+        drawLoading();
 
         // chekc if player is in game
         $.ajax({
@@ -138,9 +139,35 @@ $resource = Yii::$app->params['resource'];
         // preload background
         if (main.getChildByName("bg") == null) {
             var rect = new createjs.Shape();
-            rect.graphics.beginFill("#EEEEEE").drawRect(0, 0, <?=$scene_width?>, <?=$scene_width?>);
+            rect.graphics.beginFill("<?=Yii::$app->params['canvas_background_color']?>").drawRect(0, 0, <?=$scene_width?>, <?=$scene_height?>);
             rect.name = "bg";
             main.addChild(rect);
+            main.update();
+        }
+
+        if (main.getChildByName("left_border") == null) {
+            var rect = new createjs.Shape();
+            rect.graphics.beginFill("<?=Yii::$app->params['main_color']?>").drawRect(<?=$offset_x?>, <?=$offset_y?>, 5, <?=$map_height?>);
+            rect.name = "left_border";
+            main.addChild(rect);
+            main.update();
+        }
+
+        if (main.getChildByName("right_border") == null) {
+            var rect = new createjs.Shape();
+            rect.graphics.beginFill("<?=Yii::$app->params['main_color']?>").drawRect(<?=$map_width-5+$offset_x?>, <?=$offset_y?>, 5, <?=$map_height?>);
+            rect.name = "right_border";
+            main.addChild(rect);
+            main.update();
+        }
+
+        if (main.getChildByName("gradient") == null) {
+            var gradient = new createjs.Shape();
+            gradient.graphics.beginLinearGradientFill(["rgba(255,255,255,0)","rgba(255,211,150,125)"], [0, 1], <?=$scene_width?>, <?=$offset_y?>, 0, <?=$offset_y?>).drawRect(<?=$offset_x+5?>, <?=$offset_y?>, <?=$map_width-5?>, <?=$map_height?>);
+            gradient.name = "gradient";
+            main.addChild(gradient);
+            // gradient.graphics.beginLinearGradientFill(["rgba(255,255,255,0)","rgba(255,185,89,125)"], [0, 1], <?=5*$scene_width/6?>, <?=$offset_y?>, <?=$scene_width?>, <?=$offset_y?>).drawRect(<?=$offset_x?>, <?=$offset_y?>, <?=$map_width?>, <?=$map_height?>);
+            // main.addChild(gradient);
             main.update();
         }
 
@@ -201,7 +228,7 @@ $resource = Yii::$app->params['resource'];
     function drawLoading() {
         mask = new createjs.Stage("mask");
         var rect = new createjs.Shape();
-        rect.graphics.beginFill("#FFFFFF").drawRect(0, 0, <?=$scene_width?>, <?=$scene_height?>);
+        rect.graphics.beginFill("<?=Yii::$app->params['background_color']?>").drawRect(0, 0, <?=$scene_width?>, <?=$scene_height?>);
         mask.addChild(rect);
         mask.update();
 
@@ -212,6 +239,7 @@ $resource = Yii::$app->params['resource'];
     function clickMap(id) {
         if (getCookie("game_start") == 1 && getCookie("battle_start") == 0 && getCookie("resource") > 0) {
             $('.loader').show();
+            $('.loader-mask').show();
             $.ajax({
                 // method: "POST",
                 url: "<?= '../../api/web/index.php?r=map/mark'; ?>",
@@ -222,6 +250,7 @@ $resource = Yii::$app->params['resource'];
                 dataType : 'json',
                 success: function(response) {
                     $('.loader').hide();
+                    $('.loader-mask').hide();
                     if (response.success) {
                         setCookie("key", response.data.player.key, 7);
                         setCookie("resource", response.data.player.current_resource);
@@ -241,6 +270,7 @@ $resource = Yii::$app->params['resource'];
                 dataType : 'json',
                 success: function(response) {
                     $('.loader').hide();
+                    $('.loader-mask').hide();
                     if (response.success) {
                         setCookie("key", response.data.player.key, 7);
                         if (getCookie("bomb") > 0) {
@@ -407,7 +437,7 @@ $resource = Yii::$app->params['resource'];
         // text.removeAllChildren();
 
         if (text.getChildByName("hint") == null && getCookie("battle_start") == 0) {
-            var string = new createjs.Text('Place your defense tower!', '48px Impact,fantasy', '#ffb959');
+            var string = new createjs.Text('Place your defense tower!', '48px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_color']?>');
             string.textAlign = 'center';
             string.name = 'hint';
             string.x = <?=$map_width/2?> + <?=$offset_x?>;
@@ -416,7 +446,7 @@ $resource = Yii::$app->params['resource'];
         } else if (text.getChildByName("hint") && getCookie("battle_start") == 0) {
             text.getChildByName("hint").text = 'Place your defense tower!';
         } else if (text.getChildByName("hint") == null && getCookie("battle_start") == 1) {
-            var string = new createjs.Text('Drop bomb to stop Mech!', '48px Impact,fantasy', '#ffb959');
+            var string = new createjs.Text('Drop bomb to stop Mech!', '48px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_color']?>');
             string.textAlign = 'center';
             string.name = 'hint';
             string.x = <?=$map_width/2?> + <?=$offset_x?>;
@@ -428,7 +458,7 @@ $resource = Yii::$app->params['resource'];
 
         // score
         if (text.getChildByName("score") == null) {
-            var string = new createjs.Text('Score: ' + getCookie("score"), '84px Impact,fantasy', '#000000');
+            var string = new createjs.Text('Score: ' + getCookie("score"), '84px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_text_color']?>');
             string.textAlign = 'center';
             string.name = 'score';
             string.x = <?=$map_width/2?> + <?=$offset_x?>;
@@ -440,7 +470,7 @@ $resource = Yii::$app->params['resource'];
 
         // round_score
         if (text.getChildByName("round_score") == null) {
-            var string = new createjs.Text('this round: ' + getCookie("round_score"), '48px Impact,fantasy', '#000000');
+            var string = new createjs.Text('this round: ' + getCookie("round_score"), '48px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_text_color']?>');
             string.textAlign = 'center';
             string.name = 'round_score';
             string.x = <?=$map_width/2?> + <?=$offset_x?>;
@@ -452,10 +482,10 @@ $resource = Yii::$app->params['resource'];
 
         // resource
         if (getCookie("battle_start") == 0 && text.getChildByName("resource") == null) {
-            var string = new createjs.Text('Tower: ' + getCookie("resource"), '48px Impact,fantasy', '#000000');
+            var string = new createjs.Text('Tower: ' + getCookie("resource"), '48px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_text_color']?>');
             string.textAlign = 'left';
             string.name = "resource";
-            string.x = <?=$map_width?> - 160 + <?=$offset_x?>;
+            string.x = <?=$map_width?> - 260 + <?=$offset_x?>;
             string.y = 20;
             text.addChild(string);
         } else if (getCookie("battle_start") == 0) {
@@ -468,10 +498,10 @@ $resource = Yii::$app->params['resource'];
 
         // bomb
         if (getCookie("battle_start") == 1 && text.getChildByName("bomb") == null) {
-            string = new createjs.Text('Bomb: ' + getCookie("bomb"), '48px Impact,fantasy', '#000000');
+            string = new createjs.Text('Bomb: ' + getCookie("bomb"), '48px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_text_color']?>');
             string.textAlign = 'left';
             string.name = "bomb";
-            string.x = <?=$map_width?> - 160 + <?=$offset_x?>;
+            string.x = <?=$map_width?> - 260 + <?=$offset_x?>;
             string.y = 80;
             text.addChild(string);
         } else if (getCookie("battle_start") == 1) {
@@ -480,10 +510,10 @@ $resource = Yii::$app->params['resource'];
 
         // bomb_timer
         if (getCookie("battle_start") == 1 && text.getChildByName("bomb_timer") == null) {
-            stringstring = new createjs.Text('CD: ' + getCookie("bomb_timer"), '48px Impact,fantasy', '#000000');
+            stringstring = new createjs.Text('CD: ' + getCookie("bomb_timer"), '48px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_text_color']?>');
             string.textAlign = 'left';
             string.name = "bomb_timer";
-            string.x = <?=$map_width?> - 160 + <?=$offset_x?>;
+            string.x = <?=$map_width?> - 260 + <?=$offset_x?>;
             string.y = 140;
             text.addChild(string);
         } else if (getCookie("battle_start") == 1) {
@@ -492,10 +522,10 @@ $resource = Yii::$app->params['resource'];
 
         // bomb_delay
         if (getCookie("battle_start") == 1 && text.getChildByName("bomb_delay") == null) {
-            string = new createjs.Text('Delay: ' + getCookie("bomb_delay"), '48px Impact,fantasy', '#000000');
+            string = new createjs.Text('Delay: ' + getCookie("bomb_delay"), '48px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_text_color']?>');
             string.textAlign = 'left';
             string.name = "bomb_delay";
-            string.x = <?=$map_width?> - 160 + <?=$offset_x?>;
+            string.x = <?=$map_width?> - 260 + <?=$offset_x?>;
             string.y = 200;
             text.addChild(string);
         } else if (getCookie("battle_start") == 1) {
@@ -513,7 +543,7 @@ $resource = Yii::$app->params['resource'];
         if (is_last == 0) {
             circle.graphics.beginFill("pink").drawCircle(0, 0, <?=$grid_width/4?>);
         } else {
-            circle.graphics.beginFill("#a04b70").drawCircle(0, 0, <?=$grid_width/4?>);
+            circle.graphics.beginFill("<?=Yii::$app->params['dark_pink_color']?>").drawCircle(0, 0, <?=$grid_width/4?>);
         }
         mech_track.addChild(circle);
     }
@@ -524,7 +554,7 @@ $resource = Yii::$app->params['resource'];
             var circle = new createjs.Shape();
             circle.x = x*<?=$grid_width?> + <?=$grid_width/2?> + <?=$offset_x?>;
             circle.y = y*<?=$grid_height?> + <?=$grid_height/2?> + <?=$offset_y?>;
-            circle.graphics.beginFill("#a04b70").drawCircle(0, 0, <?=$grid_width/4?>);
+            circle.graphics.beginFill("<?=Yii::$app->params['dark_pink_color']?>").drawCircle(0, 0, <?=$grid_width/4?>);
             circle.name = "current";
             mech_track.addChild(circle);
         } else {
@@ -540,7 +570,7 @@ $resource = Yii::$app->params['resource'];
         var circle = new createjs.Shape();
         circle.x = x*<?=$grid_width?> + <?=$grid_width/2?> + <?=$offset_x?>;
         circle.y = y*<?=$grid_height?> + <?=$grid_height/2?> + <?=$offset_y?>;
-        circle.graphics.beginFill("#FFD59C").drawCircle(0, 0, <?=3*$grid_width/4?>);
+        circle.graphics.beginFill("<?=Yii::$app->params['light_yellow_color']?>").drawCircle(0, 0, <?=3*$grid_width/4?>);
         background.addChild(circle);
         background.update();
         setTimeout(function () {
@@ -554,17 +584,17 @@ $resource = Yii::$app->params['resource'];
         var circle = new createjs.Shape();
         circle.x = x*<?=$grid_width?> + <?=$grid_width/2?> + <?=$offset_x?>;
         circle.y = y*<?=$grid_height?> + <?=$grid_height/2?> + <?=$offset_y?>;
-        circle.graphics.beginFill("#ffb959").drawCircle(0, 0, <?=3*$grid_width/4?>);
+        circle.graphics.beginFill("<?=Yii::$app->params['main_color']?>").drawCircle(0, 0, <?=3*$grid_width/4?>);
         background.addChild(circle);
         background.update();
         var bomb_anim = setInterval(function(){
-            circle.graphics.clear().beginFill("#ffb959").drawCircle(0, 0, <?=3*$grid_width/4?>).endFill();
+            circle.graphics.clear().beginFill("<?=Yii::$app->params['main_color']?>").drawCircle(0, 0, <?=3*$grid_width/4?>).endFill();
             background.update();
             setTimeout(function() {
-                circle.graphics.clear().beginFill("#cca4f9").drawCircle(0, 0, <?=3*$grid_width/4?>).endFill();
+                circle.graphics.clear().beginFill("<?=Yii::$app->params['light_purple_color']?>").drawCircle(0, 0, <?=3*$grid_width/4?>).endFill();
                 background.update();
-            }, <?=Yii::$app->params['refresh_rate']?>);
-        }, <?=2*Yii::$app->params['refresh_rate']?>);
+            }, <?=Yii::$app->params['refresh_rate']/2?>);
+        }, <?=Yii::$app->params['refresh_rate']?>);
         setTimeout(function () {
             background.removeChild(circle);
             background.update();
@@ -610,18 +640,22 @@ $resource = Yii::$app->params['resource'];
 
         if (start.getChildByName("bg") == null) {
             var rect = new createjs.Shape();
-            rect.graphics.beginFill("#000000").drawRect(0, 0, <?=$scene_width?>, <?=$scene_height?>);
+            rect.graphics.beginFill("<?=Yii::$app->params['background_color']?>").drawRect(0, 0, <?=$scene_width?>, <?=$scene_height?>);
             rect.name = "bg";
             start.addChild(rect);
         }
 
         if (start.getChildByName("title") == null) {
-            var text = new createjs.Text('The Havoc', '120px Impact,fantasy', '#FFFFFF');
+            var text = new createjs.Text('The Havoc', '120px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_text_color']?>');
             text.textAlign = 'center';
             text.name = "title";
             text.x = <?=$scene_width/2?>;
             text.y = <?=$scene_height/2?> - 160;
             start.addChild(text);
+        }
+
+        if (getCookie('key') == null || getCookie('key') == undefined || getCookie('key') == 'undefined') {
+            setCookie('key', '');
         }
 
         check_status = setInterval(function(){
@@ -639,7 +673,7 @@ $resource = Yii::$app->params['resource'];
                         setCookie("game_end", 0);
                         setCookie("battle_start", 0);
                         if (start.getChildByName("enter") == null) {
-                            var text = new createjs.Text('Enter', '84px Impact,fantasy', '#ffb959');
+                            var text = new createjs.Text('Enter', '84px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_color']?>');
                             text.textAlign = 'center';
                             text.name = "enter";
                             text.x = <?=$scene_width/2?>;
@@ -655,7 +689,7 @@ $resource = Yii::$app->params['resource'];
                         setCookie("game_end", 0);
                         setCookie("battle_start", 0);
                         if (start.getChildByName("enter") == null) {
-                            var text = new createjs.Text('Waiting for Mech ...', '64px Impact,fantasy', '#ffb959');
+                            var text = new createjs.Text('Waiting for Mech ...', '64px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_color']?>');
                             text.textAlign = 'center';
                             text.name = "enter";
                             text.x = <?=$scene_width/2?>;
@@ -671,6 +705,7 @@ $resource = Yii::$app->params['resource'];
         }, <?=Yii::$app->params['refresh_rate']?>);
         start.update();
 
+        $('#end').hide();
         $('#start').show();
     }
     function endGame() {
@@ -684,13 +719,13 @@ $resource = Yii::$app->params['resource'];
 
         if (end.getChildByName("bg") == null) {
             var rect = new createjs.Shape();
-            rect.graphics.beginFill("#000000").drawRect(0, 0, <?=$scene_width?>, <?=$scene_height?>);
+            rect.graphics.beginFill("<?=Yii::$app->params['background_color']?>").drawRect(0, 0, <?=$scene_width?>, <?=$scene_height?>);
             rect.name = "bg";
             end.addChild(rect);
         }
 
         if (end.getChildByName("the_end") == null) {
-            var text = new createjs.Text('The End', '84px Impact,fantasy', '#FFFFFF');
+            var text = new createjs.Text('The End', '84px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_text_color']?>');
             text.textAlign = 'center';
             text.name = "the_end";
             text.x = <?=$scene_width/2?>;
@@ -700,19 +735,25 @@ $resource = Yii::$app->params['resource'];
 
         if (end.getChildByName("is_win") == null) {
             if (getCookie("is_win") == 1) {
-                var text = new createjs.Text('We won!', '84px Impact,fantasy', '#ffb959');
+                var text = new createjs.Text('We won!', '84px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_color']?>');
             } else {
-                var text = new createjs.Text('We lost...', '84px Impact,fantasy', '#ffb959');
+                var text = new createjs.Text('We lost...', '84px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_color']?>');
             }
             text.textAlign = 'center';
             text.name = "is_win";
             text.x = <?=$scene_width/2?>;
             text.y = <?=$scene_height/2?> - 220;
             end.addChild(text);
+        } else {
+            if (getCookie("is_win") == 1) {
+                end.getChildByName("is_win").text = 'We won!';
+            } else {
+                end.getChildByName("is_win").text = 'We lost...';
+            }
         }
 
         if (end.getChildByName("score") == null) {
-            var text = new createjs.Text('Score: ' + getCookie("score"), '128px Impact,fantasy', '#FFFFFF');
+            var text = new createjs.Text('Score: ' + getCookie("score"), '128px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_text_color']?>');
             text.textAlign = 'center';
             text.name = "score";
             text.x = <?=$scene_width/2?>;
@@ -723,7 +764,7 @@ $resource = Yii::$app->params['resource'];
         }
 
         if (end.getChildByName("round_score") == null) {
-            var text = new createjs.Text('this round: ' + getCookie("round_score"), '84px Impact,fantasy', '#ffb959');
+            var text = new createjs.Text('this round: ' + getCookie("round_score"), '84px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['main_color']?>');
             text.textAlign = 'center';
             text.name = "round_score";
             text.x = <?=$scene_width/2?>;
@@ -734,30 +775,30 @@ $resource = Yii::$app->params['resource'];
         }
 
         if (end.getChildByName("start") == null) {
-            var text = new createjs.Text('Restart', '84px Impact,fantasy', '#FFFFFF');
+            var text = new createjs.Text('Restart', '84px <?=Yii::$app->params['font']?>', '<?=Yii::$app->params['white_color']?>');
             text.textAlign = 'center';
             text.name = "start";
             text.x = <?=$scene_width/2?>;
             text.y = <?=$scene_height/2?> + 200;
             end.addChild(text);
             text_anim = setInterval(function(){
-                text.color = "#AAAAAA";
+                text.color = "<?=Yii::$app->params['hint_text_color']?>";
                 end.update();
                 setTimeout(function() {
-                    text.color = "#FFFFFF";
+                    text.color = "<?=Yii::$app->params['white_color']?>";
                     end.update();
-                }, <?=Yii::$app->params['refresh_rate']?>);
-            }, <?=2*Yii::$app->params['refresh_rate']?>);
+                }, <?=Yii::$app->params['refresh_rate']/2?>);
+            }, <?=Yii::$app->params['refresh_rate']?>);
         } else {
             var text = end.getChildByName("start");
             text_anim = setInterval(function(){
-                text.color = "#AAAAAA";
+                text.color = "<?=Yii::$app->params['hint_text_color']?>";
                 end.update();
                 setTimeout(function() {
-                    text.color = "#FFFFFF";
+                    text.color = "<?=Yii::$app->params['white_color']?>";
                     end.update();
-                }, <?=Yii::$app->params['refresh_rate']?>);
-            }, <?=2*Yii::$app->params['refresh_rate']?>);
+                }, <?=Yii::$app->params['refresh_rate']/2?>);
+            }, <?=Yii::$app->params['refresh_rate']?>);
         }
 
         end.update();
@@ -865,6 +906,7 @@ $resource = Yii::$app->params['resource'];
     <canvas id="walls" width="<?=$scene_width?>" height="<?=$scene_height?>" style="position:absolute;top:0;left:0;"></canvas>
     <canvas id="mask" width="<?=$scene_width?>" height="<?=$scene_height?>" style="position:absolute;top:0;left:0;"></canvas>
     <div class="loader"></div>
+    <div class="loader-mask"></div>
     <div class="map">
     <?php
     for ($y=0; $y<$column; $y++)
@@ -937,7 +979,7 @@ $resource = Yii::$app->params['resource'];
     color: #515151;
 }
 #restart-button:hover {
-    color: #FFFFFF;
+    color: <?=Yii::$app->params['white_color']?>;
 }
 #restart-button {
     position: absolute;
@@ -949,7 +991,7 @@ $resource = Yii::$app->params['resource'];
     z-index: 3000;
 }
 #enter-button:hover {
-    color: #FFFFFF;
+    color: <?=Yii::$app->params['white_color']?>;
 }
 #enter-button {
     position: absolute;
@@ -1000,22 +1042,28 @@ $resource = Yii::$app->params['resource'];
     position: fixed;
     z-index: 2000;
 }
-body{font-family:Impact,fantasy;}
+body{font-family:<?=Yii::$app->params['font']?>;}
 .loader {
     border: 16px solid #f3f3f3; /* Light grey */
-    border-top: 16px solid #696969; /* Blue */
+    border-top: 16px solid <?=Yii::$app->params['main_color']?>;
     border-radius: 50%;
     width: 120px;
     height: 120px;
     animation: spin 2s linear infinite;
     position: fixed;
-    top: <?=$scene_height/2?>px;
-    left: <?=$scene_width/2?>px;
+    top: <?=$scene_height/2-60?>px;
+    left: <?=$scene_width/2-60?>px;
     z-index: 3000;
 }
-
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+.loader-mask {
+    position: fixed;
+    z-index: 2000;
+    width: <?=$scene_width?>px;
+    height: <?=$scene_height?>px;
+    background-color: rgba(255, 255, 255, 0.5);
 }
 </style>

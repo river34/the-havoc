@@ -7,6 +7,7 @@ class ApiController extends \yii\web\Controller
 {
     protected $params = array();
     protected $ini_time = 0;
+    public $debug = false;
 
     public function beforeAction($action) {
         date_default_timezone_set('us/eastern');
@@ -29,7 +30,7 @@ class ApiController extends \yii\web\Controller
             }
         }
 
-        if ($this->params) {
+        if ($this->debug && $this->params) {
             try {
                 Yii::$app->db->createCommand("INSERT INTO log (log) VALUES ('". json_encode($this->params) ."')")->execute();
             } catch (Exception $e) {

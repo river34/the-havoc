@@ -17,6 +17,7 @@ use Yii;
  * @property integer $current_score
  * @property integer $current_resource
  * @property integer $current_bomb
+ * @property integer $current_is_win
  * @property string $updated_at
  * @property string $created_at
  */
@@ -37,7 +38,7 @@ class Player extends \yii\db\ActiveRecord
     {
         return [
             [['name', 'key'], 'required'],
-            [['score', 'current_round_id', 'current_score', 'current_resource', 'current_bomb'], 'integer'],
+            [['score', 'current_round_id', 'current_score', 'current_resource', 'current_bomb', 'current_is_win'], 'integer'],
             [['updated_at', 'created_at'], 'safe'],
             [['name', 'key', 'device'], 'string', 'max' => 255],
             [['ip'], 'string', 'max' => 45],
@@ -60,6 +61,7 @@ class Player extends \yii\db\ActiveRecord
             'current_score' => 'Current Score',
             'current_resource' => 'Current Resource',
             'current_bomb' => 'Current Bomb',
+            'current_is_win' => 'Current Is Win',
             'updated_at' => 'Updated At',
             'created_at' => 'Created At',
         ];

@@ -36,6 +36,7 @@ class MapController extends ApiController
         return $key;
     }
 
+    // (mobile side)
     public function actionMark() {
         $result['success'] = false;
         $result['data'] = [];
@@ -122,6 +123,7 @@ class MapController extends ApiController
         return $result;
     }
 
+    // (mobile side)
     public function actionGetTowers() {
         $result['success'] = false;
         $result['data'] = [];
@@ -145,6 +147,7 @@ class MapController extends ApiController
         return $result;
     }
 
+    // (mobile side)
     public function actionGetMyTowers() {
         $result['success'] = false;
         $result['data'] = [];
@@ -164,6 +167,7 @@ class MapController extends ApiController
         return $result;
     }
 
+    // (mobile side)
     public function actionGetOtherTowers() {
         $result['success'] = false;
         $result['data'] = [];
@@ -183,6 +187,7 @@ class MapController extends ApiController
         return $result;
     }
 
+    // (mobile side)
     public function actionGetMechTrack() {
         $result['success'] = false;
         $result['data'] = [];
@@ -204,6 +209,7 @@ class MapController extends ApiController
         return $result;
     }
 
+    // (mobile side) + (unity side)
     public function actionGetMap() {
         $result['success'] = false;
         $result['data'] = [];
@@ -234,6 +240,8 @@ class MapController extends ApiController
         return $result;
     }
 
+    // (mobile side)
+    // call for every 1 sec (fps)
     public function actionGetMapAndTrack() {
         $result['success'] = false;
         $result['data'] = [];
